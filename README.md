@@ -12,6 +12,7 @@ npm run dev      # http://localhost:3000
 npm run build    # build de produção
 npm run start    # servir build de produção
 npm run lint     # eslint
+npm test        # testes do conflicts.ts (node:test, zero dependências)
 ```
 
 Os dados são persistidos em `localStorage` sob a chave `siheyuan-project-os:v1`. O primeiro carregamento injeta dados de demonstração (Fazenda X com variante B, três decisões e conflito canônico de exemplo).
@@ -27,19 +28,22 @@ src/
                     #   Artefato, Documento, Risco, Usuario + SiheyuanState)
     seed.ts         # princípios canônicos imutáveis, 12 etapas, programa de áreas, riscos
     conflicts.ts    # detecção de conflito canônico em decisões e implantações
+    permissions.ts   # matriz de papéis × ações com enforcement
     store.ts        # reducer + actions + persistência (localStorage)
   app/
     StoreProvider.tsx   # React Context: state + dispatch + helpers + seed de demonstração
     layout.tsx          # shell + StoreProvider
     globals.css         # design system (cores mineral/leaf/ocher)
+    api/state/route.ts  # endpoint server-side (snapshot do estado canônico)
     page.tsx            # MVP: Dashboard geral
     terrenos/           # MVP: Terrenos candidatos
     roadmap/            # MVP: Roadmap do projeto
     compras-decisoes/   # MVP: Compras & Decisões
     briefing/           # núcleo completo
     riscos/             # núcleo completo
-    pranchas/           # núcleo completo
-    config/             # núcleo completo (papéis/permissões)
+    pranchas/           # núcleo completo (pranchas-mãe de referência no seed)
+    fornecedores/       # núcleo completo (fornecedores + cotações comparativas)
+    config/             # núcleo completo (papéis/permissões com matriz enforcement)
     implantacoes/ decisoes/ fornecedores/ ambientes/
     operacao/ documentos/   # prontos para expansão (entidades já definidas)
   components/
@@ -82,4 +86,10 @@ A pergunta central aparece em cada decisão:
 
 ## Expansão
 
-Os núcleos restantes (fornecedores/cotações, ambiente por ambiente, operação e entrega, documentos) têm entidades e reducers prontos; as telas são placeholders com contexto da estrutura prevista.
+Os núcleos restantes (ambiente por ambiente, operação e entrega, documentos) têm entidades e reducers prontos; as telas são placeholders com contexto da estrutura prevista.
+
+## Qualidade
+
+- **Testes** — `tests/conflicts.test.ts` cobre detecção de conflito canônico (16 testes via `node:test`, zero dependências).
+- **Permissões** — `src/domain/permissions.ts` define a matriz 6 papéis × 20 ações com enforcement real.
+- **CI** — `.github/workflows/ci.yml` roda lint + test + build em cada push/PR para `main`.
