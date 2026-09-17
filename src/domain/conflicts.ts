@@ -1,67 +1,151 @@
 import type { Decisão, Implantação, PrincípioCanônico, ProgramaArea } from "./types";
 
-const CONFLICT_KEYWORDS: Array<{
+type Rule = {
   principioId: string;
-  match: RegExp;
+  verbs: string[];
+  keywords: string[];
   msg: string;
-}> = [
+};
+
+const NEGATION = [
+  "não vamos",
+  "nao vamos",
+  "não reduz",
+  "nao reduz",
+  "não diminui",
+  "nao diminui",
+  "não remover",
+  "nao remover",
+  "não eliminar",
+  "nao eliminar",
+  "não dissolve",
+  "nao dissolve",
+  "não insere",
+  "nao insere",
+  "não converte",
+  "nao converte",
+  "não torna",
+  "nao torna",
+  "sem reduzir",
+  "sem remover",
+  "sem eliminar",
+  "sem dissolver",
+  "mantém",
+  "mantem",
+  "preserva",
+  "preservar",
+  "preservada",
+  "preservado",
+];
+
+const RULES: Rule[] = [
   {
     principioId: "princ-001",
-    match: /(reduz|menor|encolh|diminu|corta|elimina).{0,20}greenhouse/i,
-    msg: "Decisão ameaça reduzir a Greenhouse Library (princípio canônico 1).",
-  },
-  {
-    principioId: "princ-001",
-    match: /greenhouse.*(reduz|menor|encolh|diminu|corta|elimina)/i,
-    msg: "Decisão ameaça reduzir a Greenhouse Library (princípio canônico 1).",
-  },
-  {
-    principioId: "princ-001",
-    match: /(remov|excluir|suprim|eliminar).{0,20}greenhouse/i,
-    msg: "Decisão ameaça remover a Greenhouse Library (princípio canônico 1).",
-  },
-  {
-    principioId: "princ-001",
-    match: /greenhouse.*(remov|excluir|suprim|eliminar)/i,
-    msg: "Decisão ameaça remover a Greenhouse Library (princípio canônico 1).",
+    verbs: ["reduz", "reduzir", "menor", "encolh", "diminu", "diminuir", "corta", "cortar", "elimina", "eliminar", "remov", "remover", "suprim", "suprimir", "excluir"],
+    keywords: ["greenhouse", "estufa-biblioteca", "estufa biblioteca", "biblioteca de vidro"],
+    msg: "Decisão ameaça reduzir/remover a Greenhouse Library (princípio canônico 1).",
   },
   {
     principioId: "princ-002",
-    match: /(cidadela|n[uú]cleo).*(dissolv|espalh|dispers|fragment)/i,
-    msg: "Decisão ameaça dissolver a cidadela doméstica (princípio canônico 2).",
-  },
-  {
-    principioId: "princ-002",
-    match: /(dissolv|espalh|dispers|fragment).{0,20}(cidadela|n[uú]cleo)/i,
+    verbs: ["dissolv", "dissolver", "espalh", "espalhar", "dispers", "dispersar", "fragment", "fragmentar"],
+    keywords: ["cidadela", "núcleo", "nucleo", "conjunto principal", "cidadela doméstica"],
     msg: "Decisão ameaça dissolver a cidadela doméstica (princípio canônico 2).",
   },
   {
     principioId: "princ-003",
-    match: /pavilh[aã]o\s*a.*(ateli[eê]|laborat[oó]rio|of[ií]cio)/i,
+    verbs: ["inser", "inserir", "colocar", "transformar", "converter", "tornar", "passa a ser", "virar"],
+    keywords: ["ateliê", "atelie", "laboratório", "laboratorio", "laboratório de perfumaria", "ofício", "oficio", "ofícios", "oficios"],
     msg: "Decisão insere ateliê/laboratório no Pavilhão A (princípio canônico 3).",
   },
   {
-    principioId: "princ-003",
-    match: /(ateli[eê]|laborat[oó]rio|of[ií]cio).{0,20}pavilh[aã]o\s*a/i,
-    msg: "Decisão insere ateliê/laboratório no Pavilhão A (princípio canônico 3).",
+    principioId: "princ-004",
+    verbs: ["desloc", "deslocar", "remov", "remover", "separar", "destacar", "independizar"],
+    keywords: ["pavilhão b", "pavilhao b", "pavilhão b — ofícios", "pavilhão b - ofícios"],
+    msg: "Decisão desloca/separa o Pavilhão B do conjunto (princípio canônico 4).",
   },
   {
     principioId: "princ-005",
-    match: /hospitalidade.*(hotel|alojamento|institucional)/i,
+    verbs: ["converter", "tornar", "transformar", "virar", "passa a ser"],
+    keywords: ["hospitalidade", "hospedagem", "hóspedes", "hospedes"],
     msg: "Decisão converte hospitalidade em hotel/alojamento (princípio canônico 5).",
   },
   {
+    principioId: "princ-005",
+    verbs: ["hotel", "alojamento", "institucional"],
+    keywords: ["hospitalidade", "hospedagem", "hóspedes", "hospedes"],
+    msg: "Decisão converte hospitalidade em hotel/alojamento (princípio canônico 5).",
+  },
+  {
+    principioId: "princ-006",
+    verbs: ["elimina", "eliminar", "remov", "remover", "suprim", "suprimir", "cortar", "corta"],
+    keywords: ["pátio", "patio", "pátios", "patios", "sequência de pátios", "siheyuan"],
+    msg: "Decisão elimina a estrutura de pátios do siheyuan (princípio canônico 6).",
+  },
+  {
     principioId: "princ-007",
-    match: /exterior.*(vidro|transparente|aberto|exposto)/i,
-    msg: "Decisão torna o exterior transparente, violando o princípio 7.",
+    verbs: ["vidro", "transparente", "aberto", "exposto", "vidraça", "vidraca", "envidraçar"],
+    keywords: ["exterior", "fachada", "parede externa", "muro", "portal"],
+    msg: "Decisão torna o exterior transparente (princípio canônico 7).",
+  },
+  {
+    principioId: "princ-008",
+    verbs: ["expor", "exibir", "destacar visualmente", "evidenciar", "mostrar"],
+    keywords: ["resiliência", "resiliencia", "infraestrutura técnica", "camada técnica", "sistemas críticos", "bunker", "subsolo"],
+    msg: "Decisão expõe a infraestrutura técnica como tema visual (princípio canônico 8).",
+  },
+  {
+    principioId: "princ-009",
+    verbs: ["substituir", "trocar", "usar", "adotar"],
+    keywords: ["alumínio", "aluminio", "plástico", "plastico", "pvc", "vidro reflexivo", "aço inox", "concreto aparente", "fibrocimento"],
+    msg: "Decisão introduz materialidade fora do cânone (princípio canônico 9).",
+  },
+  {
+    principioId: "princ-010",
+    verbs: ["encerrar", "finalizar", "considerar pronto", "considerar concluído", "encerrar antes", "parar"],
+    keywords: ["projeto", "obra", "entrega", "artefato"],
+    msg: "Decisão encerra o projeto antes do último artefato (princípio canônico 10).",
   },
 ];
 
+function normalize(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isNegated(text: string, verb: string, keyword: string): boolean {
+  for (const neg of NEGATION) {
+    if (text.includes(neg)) {
+      const idx = text.indexOf(neg);
+      const window = text.slice(idx, idx + 80);
+      if (window.includes(verb) && window.includes(keyword)) return true;
+    }
+  }
+  return false;
+}
+
+function matchRule(text: string, rule: Rule): boolean {
+  for (const verb of rule.verbs) {
+    for (const keyword of rule.keywords) {
+      const hasVerb = text.includes(verb);
+      const hasKey = text.includes(keyword);
+      if (!hasVerb || !hasKey) continue;
+      if (isNegated(text, verb, keyword)) continue;
+      const re = new RegExp(`(${verb}).{0,30}(${keyword})|(${keyword}).{0,30}(${verb})`, "i");
+      if (re.test(text)) return true;
+    }
+  }
+  return false;
+}
+
 export function detectCanonicalConflicts(decisao: Decisão): string[] {
-  const text = `${decisao.titulo} ${decisao.descricao} ${decisao.impactoPrograma} ${decisao.opcoes.join(" ")}`;
+  const text = normalize(
+    `${decisao.titulo} ${decisao.descricao} ${decisao.impactoPrograma} ${decisao.opcoes.join(" ")}`
+  );
   const conflicts: string[] = [];
-  for (const rule of CONFLICT_KEYWORDS) {
-    if (rule.match.test(text)) conflicts.push(rule.msg);
+  for (const rule of RULES) {
+    if (matchRule(text, rule)) conflicts.push(rule.msg);
   }
   return Array.from(new Set(conflicts));
 }
@@ -72,17 +156,15 @@ export function detectImplantacaoConflicts(
 ): string[] {
   const conflicts: string[] = [];
   const greenhouse = programa.find((p) => p.ambienteKey === "greenhouse-library");
-  const text = `${imp.deslocamentos} ${imp.notas ?? ""} ${imp.conflitos.join(" ")}`;
-  if (greenhouse && /(reduz|remov|elimina|encolh|diminu|corta).{0,20}greenhouse/i.test(text)) {
-    conflicts.push("Implantação reduz a Greenhouse Library (canônico 1).");
+  const text = normalize(`${imp.deslocamentos} ${imp.notas ?? ""} ${imp.conflitos.join(" ")}`);
+  if (greenhouse) {
+    const ghRule = RULES.find((r) => r.principioId === "princ-001");
+    if (ghRule && matchRule(text, ghRule)) {
+      conflicts.push("Implantação reduz/remove a Greenhouse Library (canônico 1).");
+    }
   }
-  if (greenhouse && /greenhouse.*(reduz|remov|elimina|encolh|diminu|corta)/i.test(text)) {
-    conflicts.push("Implantação reduz a Greenhouse Library (canônico 1).");
-  }
-  if (/(dissolv|espalh|fragment).{0,20}(cidadela|n[uú]cleo)/i.test(text)) {
-    conflicts.push("Implantação dissolve a cidadela doméstica (canônico 2).");
-  }
-  if (/(cidadela|n[uú]cleo).*(dissolv|espalh|fragment)/i.test(text)) {
+  const citRule = RULES.find((r) => r.principioId === "princ-002");
+  if (citRule && matchRule(text, citRule)) {
     conflicts.push("Implantação dissolve a cidadela doméstica (canônico 2).");
   }
   return Array.from(new Set([...conflicts, ...imp.conflitos]));
@@ -93,4 +175,8 @@ export function principleById(
   id: string
 ): PrincípioCanônico | undefined {
   return principios.find((p) => p.id === id);
+}
+
+export function allProtectedPrincipleIds(): string[] {
+  return Array.from(new Set(RULES.map((r) => r.principioId)));
 }
