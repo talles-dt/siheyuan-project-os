@@ -7,12 +7,22 @@ const CONFLICT_KEYWORDS: Array<{
 }> = [
   {
     principioId: "princ-001",
+    match: /(reduz|menor|encolh|diminu|corta|elimina).{0,20}greenhouse/i,
+    msg: "Decisão ameaça reduzir a Greenhouse Library (princípio canônico 1).",
+  },
+  {
+    principioId: "princ-001",
     match: /greenhouse.*(reduz|menor|encolh|diminu|corta|elimina)/i,
     msg: "Decisão ameaça reduzir a Greenhouse Library (princípio canônico 1).",
   },
   {
     principioId: "princ-001",
-    match: /greenhouse.*(remov|excluir|suprim)/i,
+    match: /(remov|excluir|suprim|eliminar).{0,20}greenhouse/i,
+    msg: "Decisão ameaça remover a Greenhouse Library (princípio canônico 1).",
+  },
+  {
+    principioId: "princ-001",
+    match: /greenhouse.*(remov|excluir|suprim|eliminar)/i,
     msg: "Decisão ameaça remover a Greenhouse Library (princípio canônico 1).",
   },
   {
@@ -21,8 +31,18 @@ const CONFLICT_KEYWORDS: Array<{
     msg: "Decisão ameaça dissolver a cidadela doméstica (princípio canônico 2).",
   },
   {
+    principioId: "princ-002",
+    match: /(dissolv|espalh|dispers|fragment).{0,20}(cidadela|n[uú]cleo)/i,
+    msg: "Decisão ameaça dissolver a cidadela doméstica (princípio canônico 2).",
+  },
+  {
     principioId: "princ-003",
     match: /pavilh[aã]o\s*a.*(ateli[eê]|laborat[oó]rio|of[ií]cio)/i,
+    msg: "Decisão insere ateliê/laboratório no Pavilhão A (princípio canônico 3).",
+  },
+  {
+    principioId: "princ-003",
+    match: /(ateli[eê]|laborat[oó]rio|of[ií]cio).{0,20}pavilh[aã]o\s*a/i,
     msg: "Decisão insere ateliê/laboratório no Pavilhão A (princípio canônico 3).",
   },
   {
@@ -53,10 +73,16 @@ export function detectImplantacaoConflicts(
   const conflicts: string[] = [];
   const greenhouse = programa.find((p) => p.ambienteKey === "greenhouse-library");
   const text = `${imp.deslocamentos} ${imp.notas ?? ""} ${imp.conflitos.join(" ")}`;
-  if (greenhouse && /greenhouse.*(reduz|remov|elimina|encolh)/i.test(text)) {
+  if (greenhouse && /(reduz|remov|elimina|encolh|diminu|corta).{0,20}greenhouse/i.test(text)) {
     conflicts.push("Implantação reduz a Greenhouse Library (canônico 1).");
   }
-  if (/cidadela.*(dissolv|espalh|fragment)/i.test(text)) {
+  if (greenhouse && /greenhouse.*(reduz|remov|elimina|encolh|diminu|corta)/i.test(text)) {
+    conflicts.push("Implantação reduz a Greenhouse Library (canônico 1).");
+  }
+  if (/(dissolv|espalh|fragment).{0,20}(cidadela|n[uú]cleo)/i.test(text)) {
+    conflicts.push("Implantação dissolve a cidadela doméstica (canônico 2).");
+  }
+  if (/(cidadela|n[uú]cleo).*(dissolv|espalh|fragment)/i.test(text)) {
     conflicts.push("Implantação dissolve a cidadela doméstica (canônico 2).");
   }
   return Array.from(new Set([...conflicts, ...imp.conflitos]));
