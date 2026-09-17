@@ -1,5 +1,5 @@
-import { CANONICAL_PRINCIPLES, CANONICAL_ETAPAS, CANONICAL_PROGRAMA, CANONICAL_RISCOS, REFERENCE_PRANCHAS } from "./seed";
-import type { SiheyuanState, Terreno, Decisão, Material, Implantação, Critério, Tarefa, Risco, Fornecedor, Cotação, Ambiente, Artefato, Documento } from "./types";
+import { CANONICAL_PRINCIPLES, CANONICAL_ETAPAS, CANONICAL_PROGRAMA, CANONICAL_RISCOS, REFERENCE_PRANCHAS } from "./seed.ts";
+import type { SiheyuanState, Terreno, Decisão, Material, Implantação, Critério, Tarefa, Risco, Fornecedor, Cotação, Ambiente, Artefato, Documento } from "./types.ts";
 
 export function emptyState(): SiheyuanState {
   return {
@@ -163,7 +163,7 @@ export type Action =
   | { type: "SET_STATE"; state: SiheyuanState }
   | { type: "RESET" };
 
-import type { Etapa } from "./types";
+import type { Etapa } from "./types.ts";
 
 export function reducer(state: SiheyuanState, action: Action): SiheyuanState {
   switch (action.type) {
