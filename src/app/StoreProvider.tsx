@@ -1,8 +1,11 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useReducer, useState, type ReactNode } from "react";
-import { emptyState, loadState, saveState, reducer, newId, type Action } from "@/domain/store";
+import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
+import { emptyState, loadState, saveState, reducer, newId, exportState, type Action } from "@/domain/store";
 import type { SiheyuanState, Terreno, Implantação, Decisão } from "@/domain/types";
+import type { Papel } from "@/domain/permissions";
+import { pode } from "@/domain/permissions";
+import type { Acao } from "@/domain/permissions";
 import { detectCanonicalConflicts, detectImplantacaoConflicts } from "@/domain/conflicts";
 
 const PERGUNTA_CENTRAL =
@@ -13,6 +16,9 @@ interface StoreContextValue {
   dispatch: (action: Action) => void;
   ready: boolean;
   perguntaCentral: string;
+  papel: Papel;
+  setPapel: (p: Papel) => void;
+  pode: (acao: Acao) => boolean;
   helpers: {
     addTerreno: (t: Omit<Terreno, "id" | "criterioIds" | "implantacaoIds" | "createdAt">) => Terreno;
     addImplantacao: (i: Omit<Implantação, "id" | "conflitos">) => Implantação;
@@ -143,18 +149,69 @@ function seedDemo(state: SiheyuanState): SiheyuanState {
   return s;
 }
 
+const PAPEL_KEY = "siheyuan-project-os:papel";
+
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, emptyState);
   const [ready, setReady] = useState(false);
+  const [papel, setPapelState] = useState<Papel>("guardiao");
+  const remoteSynced = useRef(false);
+  const lastSync = useRef<string>("");
 
   useEffect(() => {
-    const loaded = seedDemo(loadState());
-    dispatch({ type: "SET_STATE", state: loaded });
-    setReady(true);
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem(PAPEL_KEY);
+      if (saved) setPapelState(saved as Papel);
+    }
+  }, []);
+
+  const setPapel = (p: Papel) => {
+    setPapelState(p);
+    if (typeof window !== "undefined") window.localStorage.setItem(PAPEL_KEY, p);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      let loaded = loadState();
+      try {
+        const res = await fetch("/api/state");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.source === "neon" && data.state) {
+            loaded = data.state as SiheyuanState;
+          }
+        }
+      } catch {
+        // network or DB unavailable — continue with localStorage
+      }
+      if (cancelled) return;
+      const seeded = seedDemo(loaded);
+      dispatch({ type: "SET_STATE", state: seeded });
+      lastSync.current = JSON.stringify(seeded);
+      setReady(true);
+      remoteSynced.current = true;
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
-    if (ready) saveState(state);
+    if (!ready) return;
+    saveState(state);
+    if (!remoteSynced.current) return;
+    const serialized = JSON.stringify(state);
+    if (serialized === lastSync.current) return;
+    lastSync.current = serialized;
+    const timer = setTimeout(() => {
+      fetch("/api/state", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: exportState(state),
+      }).catch(() => {});
+    }, 1200);
+    return () => clearTimeout(timer);
   }, [state, ready]);
 
   const value = useMemo<StoreContextValue>(() => {
@@ -195,6 +252,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       dispatch,
       ready,
       perguntaCentral: PERGUNTA_CENTRAL,
+      papel,
+      setPapel,
+      pode: (acao: Acao) => pode(papel, acao),
       helpers: {
         addTerreno,
         addImplantacao,
@@ -203,7 +263,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         conflictsForImplantacao: (i) => detectImplantacaoConflicts(i, state.programaAreas),
       },
     };
-  }, [state, ready]);
+  }, [state, ready, papel]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
