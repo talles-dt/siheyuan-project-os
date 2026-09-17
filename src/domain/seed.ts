@@ -1,4 +1,4 @@
-import type { ID, PrincípioCanônico, Etapa, ProgramaArea, Risco } from "./types";
+import type { ID, PrincípioCanônico, Etapa, ProgramaArea, Risco, Prancha } from "./types";
 
 const uid = (p: string, n: number): ID => `${p}-${String(n).padStart(3, "0")}`;
 
@@ -263,6 +263,61 @@ export const CANONICAL_PROGRAMA: ProgramaArea[] = [
   { id: uid("pa", 15), ambienteKey: "capela-externa", nome: "Capela ortodoxa externa (8–10 pessoas)", pavilhao: "Espiritual", area: 40, versao: "v1" },
   { id: uid("pa", 16), ambienteKey: "zona-produtiva", nome: "Zona Produtiva (horta, pomar, apiário)", pavilhao: "Rural", area: 0, versao: "v1" },
   { id: uid("pa", 17), ambienteKey: "infra-rural", nome: "Infraestrutura rural e camada técnica", pavilhao: "Infraestrutura", area: 0, versao: "v1" },
+];
+
+export const REFERENCE_PRANCHAS: Prancha[] = [
+  {
+    id: uid("prancha", 1),
+    ambienteKey: "infra-rural",
+    titulo: "Diagrama de camadas da propriedade",
+    intencaoEspacial: "Estrada → portão/filtro → alameda → cidadela doméstica → jardim/zona produtiva → campos/bosque. Estrutura concêntrica: o conjunto principal concentrado e introvertido; a área rural amplia paisagem e produção sem dissolver a casa.",
+    intencaoEmocional: "Transição gradual entre público, familiar, pessoal, produtivo e natural. A propriedade protegida e silenciosa vista de fora; aberta para pátios e jardins de dentro.",
+    principioIds: [uid("princ", 2), uid("princ", 7)],
+    materiais: "pedra, madeira, cal, vidro, metal escuro",
+    referencias: "Propriedade-cidadela; ordem doméstica crescida ao longo do tempo",
+    status: "aprovado",
+    alternativas: "Núcleo compacto (1.600–2.400 m²) vs. dispersão rural — apenas a primeira é canônica",
+    createdAt: "",
+  },
+  {
+    id: uid("prancha", 2),
+    ambienteKey: "pavilhao-a",
+    titulo: "Planta conceitual do núcleo siheyuan",
+    intencaoEspacial: "Siheyuan estruturado por pátios: chegada → doméstico → Greenhouse → social → ofícios → aromático → contemplação. Pavilhão A (doméstico), Greenhouse Library (coração), Pavilhão B (ofícios), Pavilhão C (ofícios alimentares), hospitalidade independente.",
+    intencaoEmocional: "A Greenhouse Library não precisa estar geometricamente no centro, mas é o centro da experiência: para onde convergem vistas, percursos e pausas.",
+    principioIds: [uid("princ", 1), uid("princ", 6)],
+    materiais: "pedra, madeira, cal, vidro, metal escuro",
+    referencias: "Sequência de pátios; cidadela introvertida",
+    status: "aprovado",
+    alternativas: "Deslocamentos de pavilhões são admissíveis; reduzir a Greenhouse é proibido",
+    createdAt: "",
+  },
+  {
+    id: uid("prancha", 3),
+    ambienteKey: "chegada",
+    titulo: "Sequência de chegada e percurso interno",
+    intencaoEspacial: "Portão e filtro de chegada → alameda → pátio de chegada → cidadela. Percurso interno: pátio doméstico → Greenhouse Library → pátio social → pátio de ofícios → jardim aromático → jardim de contemplação.",
+    intencaoEmocional: "Nada é escondido de quem habita a casa; quase tudo é escondido de quem está fora. Coberturas profundas, passagens protegidas, água e sombra.",
+    principioIds: [uid("princ", 7), uid("princ", 6)],
+    materiais: "pedra, madeira, cal, vidro, metal escuro",
+    referencias: "Transições graduais; exterior opaco, interior aberto",
+    status: "aprovado",
+    alternativas: "",
+    createdAt: "",
+  },
+  {
+    id: uid("prancha", 4),
+    ambienteKey: "zona-produtiva",
+    titulo: "Zoneamento rural com núcleo, produção, infraestrutura, campos e bosque",
+    intencaoEspacial: "Núcleo doméstico compacto → jardim aromático + zona produtiva (horta, pomar, ervas, galinhas, coelhos, apiário, compostagem, estufas) → infraestrutura rural (acesso de serviço, reservação, efluentes, energia, resíduos) → campos, pomar, bosque, capela externa.",
+    intencaoEmocional: "A resiliência é camada técnica discreta — percebida pela tranquilidade de funcionamento, nunca como tema visual. Estruturas rurais na periferia operacional, nunca competindo com a cidadela.",
+    principioIds: [uid("princ", 2), uid("princ", 8)],
+    materiais: "pedra, madeira, cal, metal escuro",
+    referencias: "Periferia operacional; camadas produtivas/paisagísticas/técnicas",
+    status: "aprovado",
+    alternativas: "Infraestrutura necessária vs. desejável vs. possibilidades futuras — sempre na periferia",
+    createdAt: "",
+  },
 ];
 
 export const CANONICAL_RISCOS: Risco[] = [
