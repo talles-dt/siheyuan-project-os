@@ -23,7 +23,9 @@ const blankCotacao = () => ({
 });
 
 export default function FornecedoresPage() {
-  const { state, dispatch, ready } = useStore();
+  const { state, dispatch, ready, pode } = useStore();
+  const podeFornecedor = pode("fornecedor:write");
+  const podeCotacao = pode("cotacao:write");
   const [showFornForm, setShowFornForm] = useState(false);
   const [showCotForm, setShowCotForm] = useState(false);
   const [fornForm, setFornForm] = useState(blankFornecedor());
@@ -115,12 +117,20 @@ export default function FornecedoresPage() {
         subtitle="Cotações comparativas, alternativas equivalentes, preços, validade, prazos e amostras. Uma referência não vira decisão irrevogável."
         action={
           <div className="flex gap-2">
-            <button onClick={() => { setShowCotForm((v) => !v); setShowFornForm(false); }} className="btn-ghost">
-              + Cotação
-            </button>
-            <button onClick={() => { setShowFornForm((v) => !v); setShowCotForm(false); }} className="btn-primary">
-              + Fornecedor
-            </button>
+            {podeCotacao ? (
+              <button onClick={() => { setShowCotForm((v) => !v); setShowFornForm(false); }} className="btn-ghost">
+                + Cotação
+              </button>
+            ) : (
+              <span className="text-xs italic text-mineral-400">Sem permissão (cotacao:write)</span>
+            )}
+            {podeFornecedor ? (
+              <button onClick={() => { setShowFornForm((v) => !v); setShowCotForm(false); }} className="btn-primary">
+                + Fornecedor
+              </button>
+            ) : (
+              <span className="text-xs italic text-mineral-400">Sem permissão (fornecedor:write)</span>
+            )}
           </div>
         }
       />
@@ -244,8 +254,12 @@ export default function FornecedoresPage() {
                     <div className="mt-1 text-xs text-mineral-400">{fcots.length} cotação(ões)</div>
                   </div>
                   <div className="flex flex-shrink-0 gap-2">
-                    <button onClick={() => startEditFornecedor(f)} className="btn-ghost text-xs">Editar</button>
-                    <button onClick={() => dispatch({ type: "REMOVE_FORNECEDOR", id: f.id })} className="btn-danger text-xs">Excluir</button>
+                    {podeFornecedor && (
+                      <button onClick={() => startEditFornecedor(f)} className="btn-ghost text-xs">Editar</button>
+                    )}
+                    {podeFornecedor && (
+                      <button onClick={() => dispatch({ type: "REMOVE_FORNECEDOR", id: f.id })} className="btn-danger text-xs">Excluir</button>
+                    )}
                   </div>
                 </div>
                 {fcots.length > 0 && (
@@ -305,12 +319,14 @@ export default function FornecedoresPage() {
                           <span className={`font-medium ${idx === 0 ? "text-leaf-700" : "text-mineral-700"}`}>
                             {money(c.preco, c.moeda)}
                           </span>
-                          <button
-                            onClick={() => dispatch({ type: "REMOVE_COTACAO", id: c.id })}
-                            className="btn-ghost px-1 text-xs"
-                          >
-                            ✕
-                          </button>
+                          {podeCotacao && (
+                            <button
+                              onClick={() => dispatch({ type: "REMOVE_COTACAO", id: c.id })}
+                              className="btn-ghost px-1 text-xs"
+                            >
+                              ✕
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}

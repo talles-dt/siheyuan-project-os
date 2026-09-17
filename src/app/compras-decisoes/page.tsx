@@ -62,7 +62,9 @@ const blankMaterial = () => ({
 });
 
 export default function ComprasDecisoesPage() {
-  const { state, dispatch, helpers, ready } = useStore();
+  const { state, dispatch, helpers, ready, pode } = useStore();
+  const podeDecisao = pode("decisao:write");
+  const podeMaterial = pode("material:write");
   const [tab, setTab] = useState<"decisoes" | "materiais">("decisoes");
   const [showDecForm, setShowDecForm] = useState(false);
   const [showMatForm, setShowMatForm] = useState(false);
@@ -142,13 +144,19 @@ export default function ComprasDecisoesPage() {
         subtitle="Diário de decisões com pergunta central e reversibilidade, e gestão de materiais — referências podem ser registradas sem virar decisão irrevogável."
         action={
           tab === "decisoes" ? (
-            <button onClick={() => setShowDecForm((v) => !v)} className="btn-primary">
-              + Nova decisão
-            </button>
-          ) : (
+            podeDecisao ? (
+              <button onClick={() => setShowDecForm((v) => !v)} className="btn-primary">
+                + Nova decisão
+              </button>
+            ) : (
+              <span className="text-xs italic text-mineral-400">Sem permissão (decisao:write)</span>
+            )
+          ) : podeMaterial ? (
             <button onClick={() => setShowMatForm((v) => !v)} className="btn-primary">
               + Novo material
             </button>
+          ) : (
+            <span className="text-xs italic text-mineral-400">Sem permissão (material:write)</span>
           )
         }
       />
