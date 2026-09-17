@@ -33,7 +33,9 @@ const blankTerreno = (): Omit<Terreno, "id" | "criterioIds" | "implantacaoIds" |
 });
 
 export default function TerrenosPage() {
-  const { state, dispatch, helpers, ready } = useStore();
+  const { state, dispatch, helpers, ready, pode } = useStore();
+  const podeWrite = pode("terreno:write");
+  const podeDelete = pode("terreno:delete");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(blankTerreno());
@@ -127,9 +129,13 @@ export default function TerrenosPage() {
             {selected.length === 2 && (
               <span className="chip bg-leaf-500/15 text-leaf-700">{selected.length} selecionados — comparar</span>
             )}
-            <button onClick={startCreate} className="btn-primary">
-              + Novo terreno
-            </button>
+            {podeWrite ? (
+              <button onClick={startCreate} className="btn-primary">
+                + Novo terreno
+              </button>
+            ) : (
+              <span className="text-xs italic text-mineral-400">Sem permissão (terreno:write)</span>
+            )}
           </div>
         }
       />
@@ -250,13 +256,17 @@ export default function TerrenosPage() {
                     <button onClick={() => cycleStatus(t.id)} title="Clicar para avançar status">
                       <StatusChip status={t.status} />
                     </button>
-                    <button onClick={() => startEdit(t)} className="btn-ghost text-xs">Editar</button>
-                    <button
-                      onClick={() => dispatch({ type: "REMOVE_TERRENO", id: t.id })}
-                      className="btn-danger text-xs"
-                    >
-                      Excluir
-                    </button>
+                    {podeWrite && (
+                      <button onClick={() => startEdit(t)} className="btn-ghost text-xs">Editar</button>
+                    )}
+                    {podeDelete && (
+                      <button
+                        onClick={() => dispatch({ type: "REMOVE_TERRENO", id: t.id })}
+                        className="btn-danger text-xs"
+                      >
+                        Excluir
+                      </button>
+                    )}
                   </div>
                 </div>
                 {impls.length > 0 && (

@@ -7,7 +7,7 @@ import { PAPEIS } from "@/domain/permissions";
 import { exportState, parseBackup } from "@/domain/store";
 
 export default function Page() {
-  const { state, ready, dispatch } = useStore();
+  const { state, ready, dispatch, papel, setPapel } = useStore();
   const fileRef = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   if (!ready) return <div className="p-8 text-mineral-400">Carregando…</div>;
@@ -48,7 +48,25 @@ export default function Page() {
         subtitle="Papéis e permissões do sistema. Princípios canônicos são imutáveis por design: alteração exige motivo registrado e mantém histórico completo."
       />
 
-      <h2 className="section-title mb-3">Papéis e permissões</h2>
+      <h2 className="section-title mb-3">Sua sessão</h2>
+      <div className="card card-pad">
+        <label className="field-label">Atuando como</label>
+        <select
+          className="input mt-1 max-w-xs"
+          value={papel}
+          onChange={(e) => setPapel(e.target.value as typeof papel)}
+        >
+          {PAPEIS.map((p) => (
+            <option key={p.key} value={p.key}>{p.nome}</option>
+          ))}
+        </select>
+        <p className="mt-2 text-xs text-mineral-500">
+          O papel selecionado é persistido neste navegador e determina quais ações ficam disponíveis nos formulários
+          de edição. {PAPEIS.find((p) => p.key === papel)?.acoes.length ?? 0} ações permitidas.
+        </p>
+      </div>
+
+      <h2 className="section-title mb-3 mt-8">Papéis e permissões</h2>
       <div className="grid gap-3 md:grid-cols-2">
         {PAPEIS.map((p) => (
           <div key={p.key} className="card card-pad">
