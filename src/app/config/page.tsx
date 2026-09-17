@@ -2,15 +2,7 @@
 
 import { useStore } from "@/app/StoreProvider";
 import { PageHeader, Badge } from "@/components/ui";
-
-const PAPEIS: Array<{ key: string; nome: string; descricao: string }> = [
-  { key: "guardiao", nome: "Guardião do briefing", descricao: "Edita princípios canônicos (com auditoria imutável), aprova decisões com conflito, encerra o projeto." },
-  { key: "arquiteto", nome: "Arquiteto", descricao: "Edita pranchas, implantações, programa de áreas e etapas." },
-  { key: "gestor-obra", nome: "Gestor de obra", descricao: "Edita tarefas, cronograma, riscos e recebimento de materiais." },
-  { key: "comprador", nome: "Comprador", descricao: "Edita fornecedores, cotações e pedidos." },
-  { key: "consultor", nome: "Consultor (leitura)", descricao: "Visualiza tudo, sem edição." },
-  { key: "aprovador", nome: "Aprovador", descricao: "Apenas assina decisões atribuídas." },
-];
+import { PAPEIS } from "@/domain/permissions";
 
 export default function Page() {
   const { state, ready } = useStore();
@@ -23,15 +15,26 @@ export default function Page() {
         subtitle="Papéis e permissões do sistema. Princípios canônicos são imutáveis por design: alteração exige motivo registrado e mantém histórico completo."
       />
 
-      <h2 className="section-title mb-3">Papéis</h2>
+      <h2 className="section-title mb-3">Papéis e permissões</h2>
       <div className="grid gap-3 md:grid-cols-2">
         {PAPEIS.map((p) => (
           <div key={p.key} className="card card-pad">
             <div className="flex items-center gap-2">
               <div className="text-sm font-medium text-mineral-800">{p.nome}</div>
               <Badge>{p.key}</Badge>
+              <Badge>{p.acoes.length} ações</Badge>
             </div>
             <div className="mt-1 text-xs text-mineral-500">{p.descricao}</div>
+            {p.acoes.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {p.acoes.map((a) => (
+                  <span key={a} className="chip bg-mineral-100 text-mineral-500 text-[10px]">{a}</span>
+                ))}
+              </div>
+            )}
+            {p.acoes.length === 0 && (
+              <div className="mt-2 text-xs italic text-mineral-400">Somente leitura</div>
+            )}
           </div>
         ))}
       </div>
