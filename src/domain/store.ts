@@ -66,6 +66,67 @@ export function resetState(): SiheyuanState {
   return s;
 }
 
+export interface BackupPayload {
+  app: "siheyuan-project-os";
+  versao: number;
+  exportadoEm: string;
+  state: SiheyuanState;
+}
+
+export function exportState(state: SiheyuanState): string {
+  const payload: BackupPayload = {
+    app: "siheyuan-project-os",
+    versao: state.versao,
+    exportadoEm: new Date().toISOString(),
+    state,
+  };
+  return JSON.stringify(payload, null, 2);
+}
+
+const REQUIRED_KEYS: Array<keyof SiheyuanState> = [
+  "principios",
+  "terrenos",
+  "criterios",
+  "implantacoes",
+  "programaAreas",
+  "pranchas",
+  "etapas",
+  "tarefas",
+  "decisoes",
+  "fornecedores",
+  "cotacoes",
+  "materiais",
+  "ambientes",
+  "artefatos",
+  "documentos",
+  "riscos",
+  "usuarios",
+  "versao",
+];
+
+export function parseBackup(raw: string): SiheyuanState {
+  let payload: unknown;
+  try {
+    payload = JSON.parse(raw);
+  } catch {
+    throw new Error("Arquivo de backup inválido (JSON malformado).");
+  }
+  const obj = payload as Partial<BackupPayload> | Partial<SiheyuanState>;
+  const state = (obj as Partial<BackupPayload>).state ?? (obj as Partial<SiheyuanState>);
+  if (!state || typeof state !== "object") {
+    throw new Error("Backup não contém estado válido.");
+  }
+  for (const key of REQUIRED_KEYS) {
+    if (!(key in state)) {
+      throw new Error(`Backup incompleto: chave "${key}" ausente.`);
+    }
+  }
+  if (!Array.isArray((state as SiheyuanState).principios) || (state as SiheyuanState).principios.length === 0) {
+    throw new Error("Backup sem princípios canônicos — recuse arquivos corrompidos.");
+  }
+  return state as SiheyuanState;
+}
+
 export type StatePatch = Partial<SiheyuanState>;
 
 export type Action =
