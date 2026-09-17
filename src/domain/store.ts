@@ -1,5 +1,5 @@
-import { CANONICAL_PRINCIPLES, CANONICAL_ETAPAS, CANONICAL_PROGRAMA, CANONICAL_RISCOS } from "./seed";
-import type { SiheyuanState, Terreno, Decisão, Material, Implantação, Critério, Tarefa, Risco } from "./types";
+import { CANONICAL_PRINCIPLES, CANONICAL_ETAPAS, CANONICAL_PROGRAMA, CANONICAL_RISCOS, REFERENCE_PRANCHAS } from "./seed";
+import type { SiheyuanState, Terreno, Decisão, Material, Implantação, Critério, Tarefa, Risco, Fornecedor, Cotação, Ambiente, Artefato, Documento } from "./types";
 
 export function emptyState(): SiheyuanState {
   return {
@@ -8,7 +8,7 @@ export function emptyState(): SiheyuanState {
     criterios: [],
     implantacoes: [],
     programaAreas: CANONICAL_PROGRAMA,
-    pranchas: [],
+    pranchas: REFERENCE_PRANCHAS,
     etapas: CANONICAL_ETAPAS,
     tarefas: [],
     decisoes: [],
@@ -88,6 +88,17 @@ export type Action =
   | { type: "SET_ETAPA_STATUS"; id: string; status: Etapa["status"] }
   | { type: "ADD_RISCO"; risco: Risco }
   | { type: "TOGGLE_RISCO_RESOLVIDO"; id: string }
+  | { type: "ADD_FORNECEDOR"; fornecedor: Fornecedor }
+  | { type: "UPDATE_FORNECEDOR"; fornecedor: Fornecedor }
+  | { type: "REMOVE_FORNECEDOR"; id: string }
+  | { type: "ADD_COTACAO"; cotacao: Cotação }
+  | { type: "UPDATE_COTACAO"; cotacao: Cotação }
+  | { type: "REMOVE_COTACAO"; id: string }
+  | { type: "ADD_AMBIENTE"; ambiente: Ambiente }
+  | { type: "UPDATE_AMBIENTE"; ambiente: Ambiente }
+  | { type: "ADD_ARTEFATO"; artefato: Artefato }
+  | { type: "UPDATE_ARTEFATO"; artefato: Artefato }
+  | { type: "ADD_DOCUMENTO"; documento: Documento }
   | { type: "SET_STATE"; state: SiheyuanState }
   | { type: "RESET" };
 
@@ -180,6 +191,44 @@ export function reducer(state: SiheyuanState, action: Action): SiheyuanState {
           r.id === action.id ? { ...r, resolvido: !r.resolvido } : r
         ),
       };
+    case "ADD_FORNECEDOR":
+      return { ...state, fornecedores: [...state.fornecedores, action.fornecedor] };
+    case "UPDATE_FORNECEDOR":
+      return {
+        ...state,
+        fornecedores: state.fornecedores.map((f) => (f.id === action.fornecedor.id ? action.fornecedor : f)),
+      };
+    case "REMOVE_FORNECEDOR":
+      return {
+        ...state,
+        fornecedores: state.fornecedores.filter((f) => f.id !== action.id),
+        cotacoes: state.cotacoes.filter((c) => c.fornecedorId !== action.id),
+      };
+    case "ADD_COTACAO":
+      return { ...state, cotacoes: [...state.cotacoes, action.cotacao] };
+    case "UPDATE_COTACAO":
+      return {
+        ...state,
+        cotacoes: state.cotacoes.map((c) => (c.id === action.cotacao.id ? action.cotacao : c)),
+      };
+    case "REMOVE_COTACAO":
+      return { ...state, cotacoes: state.cotacoes.filter((c) => c.id !== action.id) };
+    case "ADD_AMBIENTE":
+      return { ...state, ambientes: [...state.ambientes, action.ambiente] };
+    case "UPDATE_AMBIENTE":
+      return {
+        ...state,
+        ambientes: state.ambientes.map((a) => (a.id === action.ambiente.id ? action.ambiente : a)),
+      };
+    case "ADD_ARTEFATO":
+      return { ...state, artefatos: [...state.artefatos, action.artefato] };
+    case "UPDATE_ARTEFATO":
+      return {
+        ...state,
+        artefatos: state.artefatos.map((a) => (a.id === action.artefato.id ? action.artefato : a)),
+      };
+    case "ADD_DOCUMENTO":
+      return { ...state, documentos: [...state.documentos, action.documento] };
     case "RESET":
       return resetState();
     default:
