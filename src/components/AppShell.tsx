@@ -19,7 +19,6 @@ const NAV: NavItem[] = [
   { href: "/briefing", label: "Briefing canônico", grupo: "Núcleos" },
   { href: "/pranchas", label: "Pranchas e vistas", grupo: "Núcleos" },
   { href: "/implantacoes", label: "Terrenos & implantações", grupo: "Núcleos" },
-  { href: "/decisoes", label: "Decisões e aprovações", grupo: "Núcleos" },
   { href: "/fornecedores", label: "Fornecedores e cotações", grupo: "Núcleos" },
   { href: "/ambientes", label: "Ambiente por ambiente", grupo: "Núcleos" },
   { href: "/operacao", label: "Operação e entrega final", grupo: "Núcleos" },
